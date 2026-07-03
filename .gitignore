@@ -1,23 +1,39 @@
-# Node
+# ===== Node =====
 node_modules/
 npm-debug.log*
+yarn-error.log
 
-# Environment variables
+# ===== Environment =====
 .env
 .env.local
+.env.production
 
-# Flutter build output
+# ===== Flutter / Dart =====
 client/build/
 client/.dart_tool/
 client/.flutter-plugins
 client/.flutter-plugins-dependencies
+client/.packages
+client/.pub-cache/
+client/.pub/
+client/**/.dart_tool/
 
-# Python
+# ===== Python =====
 venv/
 __pycache__/
 *.pyc
-.env
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+*.so
 
-# OS
+# ===== OS =====
 .DS_Store
 Thumbs.db
+desktop.ini
+
+# ===== IDE =====
+.vscode/settings.json
+.idea/
+*.iml
