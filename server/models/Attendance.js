@@ -1,26 +1,24 @@
-const mongoose = require("mongoose");
+const { DataTypes } = require("sequelize");
+const { sequelize } = require("../config/db");
 
-const attendanceSchema = new mongoose.Schema({
-  student: { type: mongoose.Schema.Types.ObjectId, ref: "Student", required: true },
-  trip: { type: mongoose.Schema.Types.ObjectId, ref: "Trip", required: true },
-  bus: { type: mongoose.Schema.Types.ObjectId, ref: "Bus" },
-  date: { type: Date, default: Date.now },
-  status: { 
-    type: String, 
-    enum: ["Present", "Absent", "Late"],
-    default: "Present" 
+const Attendance = sequelize.define(
+  "Attendance",
+  {
+    id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    date: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
+    status: {
+      type: DataTypes.ENUM("Present", "Absent", "Late"),
+      defaultValue: "Present",
+    },
+    scanMethod: {
+      type: DataTypes.ENUM("QR Code", "Face Recognition", "Manual", "RFID"),
+      defaultValue: "QR Code",
+    },
+    latitude: { type: DataTypes.DECIMAL(10, 7) },
+    longitude: { type: DataTypes.DECIMAL(10, 7) },
+    // FK: studentId, tripId, busId set in associations.js
   },
-  scanMethod: { 
-    type: String, 
-    enum: ["QR Code", "Face Recognition", "Manual", "RFID"],
-    default: "QR Code" 
-  },
-  location: {
-    type: { type: String, default: "Point" },
-    coordinates: { type: [Number] }
-  }
-}, { timestamps: true });
+  { timestamps: true }
+);
 
-attendanceSchema.index({ location: "2dsphere" });
-
-module.exports = mongoose.model("Attendance", attendanceSchema);
+module.exports = Attendance;

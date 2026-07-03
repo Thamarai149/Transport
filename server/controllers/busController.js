@@ -1,11 +1,16 @@
-const Bus = require("../models/Bus");
+const { Bus, Driver, Route } = require("../models/associations");
 
 // @desc    Get all buses
 // @route   GET /api/buses
 // @access  Private
 const getBuses = async (req, res) => {
   try {
-    const buses = await Bus.find().populate("assignedDriver").populate("currentRoute");
+    const buses = await Bus.findAll({
+      include: [
+        { model: Driver, as: "assignedDriver" },
+        { model: Route, as: "currentRoute" },
+      ],
+    });
     res.json(buses);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -17,7 +22,12 @@ const getBuses = async (req, res) => {
 // @access  Private
 const getBusById = async (req, res) => {
   try {
-    const bus = await Bus.findById(req.params.id).populate("assignedDriver").populate("currentRoute");
+    const bus = await Bus.findByPk(req.params.id, {
+      include: [
+        { model: Driver, as: "assignedDriver" },
+        { model: Route, as: "currentRoute" },
+      ],
+    });
     if (bus) {
       res.json(bus);
     } else {
@@ -34,14 +44,13 @@ const getBusById = async (req, res) => {
 const createBus = async (req, res) => {
   try {
     const { busNumber, registrationNumber, capacity, ...rest } = req.body;
-    const bus = new Bus({
+    const bus = await Bus.create({
       busNumber,
       registrationNumber: registrationNumber || busNumber,
       capacity,
       ...rest,
     });
-    const createdBus = await bus.save();
-    res.status(201).json(createdBus);
+    res.status(201).json(bus);
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
@@ -52,8 +61,11 @@ const createBus = async (req, res) => {
 // @access  Private/Admin
 const updateBus = async (req, res) => {
   try {
-    const bus = await Bus.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
-    if (bus) {
+    const [updated] = await Bus.update(req.body, {
+      where: { id: req.params.id },
+    });
+    if (updated) {
+      const bus = await Bus.findByPk(req.params.id);
       res.json(bus);
     } else {
       res.status(404).json({ message: "Bus not found" });
@@ -68,8 +80,8 @@ const updateBus = async (req, res) => {
 // @access  Private/Admin
 const deleteBus = async (req, res) => {
   try {
-    const bus = await Bus.findByIdAndDelete(req.params.id);
-    if (bus) {
+    const deleted = await Bus.destroy({ where: { id: req.params.id } });
+    if (deleted) {
       res.json({ message: "Bus removed" });
     } else {
       res.status(404).json({ message: "Bus not found" });

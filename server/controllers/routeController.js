@@ -1,11 +1,13 @@
-const Route = require("../models/Route");
+const { Route, Stop } = require("../models/associations");
 
 // @desc    Get all routes
 // @route   GET /api/routes
 // @access  Private
 const getRoutes = async (req, res) => {
   try {
-    const routes = await Route.find().populate("stops");
+    const routes = await Route.findAll({
+      include: [{ model: Stop, as: "stops" }],
+    });
     res.json(routes);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -28,15 +30,14 @@ const createRoute = async (req, res) => {
       endLocation,
     } = req.body;
 
-    const route = new Route({
+    const route = await Route.create({
       routeName: routeName || name,
       routeNumber: routeNumber || name || `R-${Date.now()}`,
       startPoint: startPoint || startLocation,
       endPoint: endPoint || endLocation,
       college: college || "Default College",
     });
-    const createdRoute = await route.save();
-    res.status(201).json(createdRoute);
+    res.status(201).json(route);
   } catch (error) {
     res.status(400).json({ message: error.message });
   }

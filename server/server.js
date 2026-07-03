@@ -5,7 +5,10 @@ const cors = require("cors");
 const helmet = require("helmet");
 const morgan = require("morgan");
 const { Server } = require("socket.io");
-const connectDB = require("./config/db");
+const { connectDB } = require("./config/db");
+
+// Load all models and associations BEFORE connectDB so sequelize.sync() sees them
+require("./models/associations");
 
 const app = express();
 const server = http.createServer(app);
@@ -22,7 +25,7 @@ app.use(cors());
 app.use(helmet());
 app.use(morgan("dev"));
 
-// Database Connection
+// Database Connection (MySQL via Sequelize)
 connectDB();
 
 // Routes
@@ -75,23 +78,21 @@ io.on("connection", (socket) => {
     // Geofence: check proximity to all stops for this route
     if (data.latitude && data.longitude && data.routeId) {
       try {
-        const stops = await Stop.find({ routeId: data.routeId });
+        // Sequelize query replacing Mongoose Stop.find({ routeId })
+        const stops = await Stop.findAll({ where: { routeId: data.routeId } });
         for (const stop of stops) {
-          if (stop.location && stop.location.coordinates) {
-            const [stopLon, stopLat] = stop.location.coordinates;
-            const dist = haversineMetres(
-              parseFloat(data.latitude), parseFloat(data.longitude),
-              stopLat, stopLon
-            );
-            if (dist <= 150) {
-              io.to(`busRoom-${data.busId}`).emit("busApproaching", {
-                busId: data.busId,
-                stopId: stop._id,
-                stopName: stop.stopName,
-                distanceMetres: Math.round(dist),
-              });
-              console.log(`Bus ${data.busId} approaching stop: ${stop.stopName} (${Math.round(dist)}m)`);
-            }
+          const dist = haversineMetres(
+            parseFloat(data.latitude), parseFloat(data.longitude),
+            parseFloat(stop.latitude), parseFloat(stop.longitude)
+          );
+          if (dist <= 150) {
+            io.to(`busRoom-${data.busId}`).emit("busApproaching", {
+              busId: data.busId,
+              stopId: stop.id,
+              stopName: stop.stopName,
+              distanceMetres: Math.round(dist),
+            });
+            console.log(`Bus ${data.busId} approaching stop: ${stop.stopName} (${Math.round(dist)}m)`);
           }
         }
       } catch (err) {
