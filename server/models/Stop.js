@@ -1,17 +1,18 @@
-const mongoose = require("mongoose");
+const { DataTypes } = require("sequelize");
+const { sequelize } = require("../config/db");
 
-const stopSchema = new mongoose.Schema({
-  stopName: { type: String, required: true },
-  location: {
-    type: { type: String, default: "Point" },
-    coordinates: { type: [Number], required: true } // [longitude, latitude]
+const Stop = sequelize.define(
+  "Stop",
+  {
+    id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    stopName: { type: DataTypes.STRING, allowNull: false },
+    latitude: { type: DataTypes.DECIMAL(10, 7), allowNull: false },
+    longitude: { type: DataTypes.DECIMAL(10, 7), allowNull: false },
+    pickupTime: { type: DataTypes.STRING }, // e.g., "08:30 AM"
+    dropTime: { type: DataTypes.STRING },
+    // FK: routeId set in associations.js
   },
-  routeId: { type: mongoose.Schema.Types.ObjectId, ref: "Route" },
-  pickupTime: { type: String }, // e.g., "08:30 AM"
-  dropTime: { type: String }
-}, { timestamps: true });
+  { timestamps: true }
+);
 
-// Index for geospatial queries
-stopSchema.index({ location: "2dsphere" });
-
-module.exports = mongoose.model("Stop", stopSchema);
+module.exports = Stop;

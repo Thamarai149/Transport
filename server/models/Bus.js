@@ -1,18 +1,22 @@
-const mongoose = require("mongoose");
+const { DataTypes } = require("sequelize");
+const { sequelize } = require("../config/db");
 
-const busSchema = new mongoose.Schema({
-  busNumber: { type: String, required: true, unique: true },
-  registrationNumber: { type: String, required: true, unique: true },
-  capacity: { type: Number, required: true },
-  assignedDriver: { type: mongoose.Schema.Types.ObjectId, ref: "Driver" },
-  currentRoute: { type: mongoose.Schema.Types.ObjectId, ref: "Route" },
-  status: { 
-    type: String, 
-    enum: ["Active", "Maintenance", "Inactive"],
-    default: "Active" 
+const Bus = sequelize.define(
+  "Bus",
+  {
+    id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    busNumber: { type: DataTypes.STRING, allowNull: false, unique: true },
+    registrationNumber: { type: DataTypes.STRING, allowNull: false, unique: true },
+    capacity: { type: DataTypes.INTEGER, allowNull: false },
+    status: {
+      type: DataTypes.ENUM("Active", "Maintenance", "Inactive"),
+      defaultValue: "Active",
+    },
+    insuranceExpiry: { type: DataTypes.DATE },
+    lastMaintenance: { type: DataTypes.DATE },
+    // FK fields set in associations.js: driverId, routeId
   },
-  insuranceExpiry: { type: Date },
-  lastMaintenance: { type: Date }
-}, { timestamps: true });
+  { timestamps: true }
+);
 
-module.exports = mongoose.model("Bus", busSchema);
+module.exports = Bus;

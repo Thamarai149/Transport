@@ -1,14 +1,19 @@
-const mongoose = require("mongoose");
+const { DataTypes } = require("sequelize");
+const { sequelize } = require("../config/db");
 
-const routeSchema = new mongoose.Schema({
-  routeName: { type: String, required: true },
-  routeNumber: { type: String, required: true, unique: true },
-  startPoint: { type: String, required: true },
-  endPoint: { type: String, required: true },
-  distance: { type: Number }, // in km
-  estimatedTime: { type: Number }, // in minutes
-  stops: [{ type: mongoose.Schema.Types.ObjectId, ref: "Stop" }],
-  college: { type: String, required: true }
-}, { timestamps: true });
+const Route = sequelize.define(
+  "Route",
+  {
+    id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    routeName: { type: DataTypes.STRING, allowNull: false },
+    routeNumber: { type: DataTypes.STRING, allowNull: false, unique: true },
+    startPoint: { type: DataTypes.STRING, allowNull: false },
+    endPoint: { type: DataTypes.STRING, allowNull: false },
+    distance: { type: DataTypes.FLOAT }, // km
+    estimatedTime: { type: DataTypes.INTEGER }, // minutes
+    college: { type: DataTypes.STRING, allowNull: false },
+  },
+  { timestamps: true }
+);
 
-module.exports = mongoose.model("Route", routeSchema);
+module.exports = Route;
