@@ -1,27 +1,25 @@
-const mongoose = require("mongoose");
+const { DataTypes } = require("sequelize");
+const { sequelize } = require("../config/db");
 
-const tripSchema = new mongoose.Schema({
-  driver: { type: mongoose.Schema.Types.ObjectId, ref: "Driver", required: true },
-  bus: { type: mongoose.Schema.Types.ObjectId, ref: "Bus", required: true },
-  route: { type: mongoose.Schema.Types.ObjectId, ref: "Route", required: true },
-  startTime: { type: Date },
-  endTime: { type: Date },
-  status: { 
-    type: String, 
-    enum: ["Scheduled", "Ongoing", "Completed", "Cancelled"],
-    default: "Scheduled" 
+const Trip = sequelize.define(
+  "Trip",
+  {
+    id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    startTime: { type: DataTypes.DATE },
+    endTime: { type: DataTypes.DATE },
+    status: {
+      type: DataTypes.ENUM("Scheduled", "Ongoing", "Completed", "Cancelled"),
+      defaultValue: "Scheduled",
+    },
+    passengerCount: { type: DataTypes.INTEGER, defaultValue: 0 },
+    // Replaced GeoJSON with plain lat/lon decimals
+    startLatitude: { type: DataTypes.DECIMAL(10, 7) },
+    startLongitude: { type: DataTypes.DECIMAL(10, 7) },
+    endLatitude: { type: DataTypes.DECIMAL(10, 7) },
+    endLongitude: { type: DataTypes.DECIMAL(10, 7) },
+    // FK: driverId, busId, routeId set in associations.js
   },
-  passengerCount: { type: Number, default: 0 },
-  startLocation: {
-    type: { type: String, default: "Point" },
-    coordinates: { type: [Number] }
-  },
-  endLocation: {
-    type: { type: String, default: "Point" },
-    coordinates: { type: [Number] }
-  }
-}, { timestamps: true });
+  { timestamps: true }
+);
 
-tripSchema.index({ startLocation: "2dsphere", endLocation: "2dsphere" });
-
-module.exports = mongoose.model("Trip", tripSchema);
+module.exports = Trip;

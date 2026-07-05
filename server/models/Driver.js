@@ -1,13 +1,17 @@
-const mongoose = require("mongoose");
+const { DataTypes } = require("sequelize");
+const { sequelize } = require("../config/db");
 
-const driverSchema = new mongoose.Schema({
-  user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-  licenseNumber: { type: String, required: true, unique: true },
-  licenseExpiry: { type: Date, required: true },
-  assignedBus: { type: mongoose.Schema.Types.ObjectId, ref: "Bus" },
-  currentRoute: { type: mongoose.Schema.Types.ObjectId, ref: "Route" },
-  isActive: { type: Boolean, default: false }, // true when on trip
-  behaviorScore: { type: Number, default: 100 } // AI driver behavior analysis
-}, { timestamps: true });
+const Driver = sequelize.define(
+  "Driver",
+  {
+    id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    licenseNumber: { type: DataTypes.STRING, allowNull: false, unique: true },
+    licenseExpiry: { type: DataTypes.DATE, allowNull: false },
+    isActive: { type: DataTypes.BOOLEAN, defaultValue: false }, // true when on trip
+    behaviorScore: { type: DataTypes.FLOAT, defaultValue: 100 }, // AI driver behavior score
+    // FK: userId, busId, routeId set in associations.js
+  },
+  { timestamps: true }
+);
 
-module.exports = mongoose.model("Driver", driverSchema);
+module.exports = Driver;

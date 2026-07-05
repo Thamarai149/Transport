@@ -1,6 +1,4 @@
-const User = require("../models/User");
-const Student = require("../models/Student");
-const Driver = require("../models/Driver");
+const { User, Student, Driver } = require("../models/associations");
 const jwt = require("jsonwebtoken");
 
 const generateToken = (id) => {
@@ -16,41 +14,36 @@ const registerUser = async (req, res) => {
   const { name, email, password, role, ...otherDetails } = req.body;
 
   try {
-    const userExists = await User.findOne({ email });
+    const userExists = await User.findOne({ where: { email } });
 
     if (userExists) {
       return res.status(400).json({ message: "User already exists" });
     }
 
-    const user = await User.create({
-      name,
-      email,
-      password,
-      role,
-    });
+    const user = await User.create({ name, email, password, role });
 
     if (user) {
-      // Create specific role profile
+      // Create role-specific profile
       if (role === "Student") {
         await Student.create({
-          user: user._id,
+          userId: user.id,
           rollNumber: otherDetails.rollNumber,
           college: otherDetails.college,
         });
       } else if (role === "Driver") {
         await Driver.create({
-          user: user._id,
+          userId: user.id,
           licenseNumber: otherDetails.licenseNumber,
           licenseExpiry: new Date(otherDetails.licenseExpiry),
         });
       }
 
       res.status(201).json({
-        _id: user._id,
+        id: user.id,
         name: user.name,
         email: user.email,
         role: user.role,
-        token: generateToken(user._id),
+        token: generateToken(user.id),
       });
     } else {
       res.status(400).json({ message: "Invalid user data" });
@@ -67,15 +60,15 @@ const loginUser = async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ where: { email } });
 
     if (user && (await user.matchPassword(password))) {
       res.json({
-        _id: user._id,
+        id: user.id,
         name: user.name,
         email: user.email,
         role: user.role,
-        token: generateToken(user._id),
+        token: generateToken(user.id),
       });
     } else {
       res.status(401).json({ message: "Invalid email or password" });

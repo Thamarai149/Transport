@@ -1,16 +1,23 @@
-const mongoose = require("mongoose");
+const { DataTypes } = require("sequelize");
+const { sequelize } = require("../config/db");
 
-const studentSchema = new mongoose.Schema({
-  user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-  rollNumber: { type: String, required: true, unique: true },
-  college: { type: String, required: true },
-  department: { type: String },
-  route: { type: mongoose.Schema.Types.ObjectId, ref: "Route" },
-  pickupStop: { type: mongoose.Schema.Types.ObjectId, ref: "Stop" },
-  qrCode: { type: String }, // URL or hash for the QR
-  faceEncoding: { type: Array }, // For AI face recognition
-  feeStatus: { type: String, enum: ["Paid", "Pending", "Overdue"], default: "Pending" },
-  emergencyContact: { type: String }
-}, { timestamps: true });
+const Student = sequelize.define(
+  "Student",
+  {
+    id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    rollNumber: { type: DataTypes.STRING, allowNull: false, unique: true },
+    college: { type: DataTypes.STRING, allowNull: false },
+    department: { type: DataTypes.STRING },
+    qrCode: { type: DataTypes.STRING }, // URL or hash for the QR
+    faceEncoding: { type: DataTypes.TEXT }, // JSON-serialized face encoding array
+    feeStatus: {
+      type: DataTypes.ENUM("Paid", "Pending", "Overdue"),
+      defaultValue: "Pending",
+    },
+    emergencyContact: { type: DataTypes.STRING },
+    // FK: userId, routeId, pickupStopId set in associations.js
+  },
+  { timestamps: true }
+);
 
-module.exports = mongoose.model("Student", studentSchema);
+module.exports = Student;

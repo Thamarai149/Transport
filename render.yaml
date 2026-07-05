@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: transponet-backend
+    runtime: node
+    rootDir: server
+    buildCommand: npm install
+    startCommand: node server.js
+    healthCheckPath: /
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5000
+      - key: MONGO_URI
+        sync: false          # Set manually in Render dashboard
+      - key: JWT_SECRET
+        sync: false          # Set manually in Render dashboard
+      - key: JWT_EXPIRES_IN
+        value: 30d
+      - key: AI_SERVICE_URL
+        sync: false          # Set to your deployed AI service URL
